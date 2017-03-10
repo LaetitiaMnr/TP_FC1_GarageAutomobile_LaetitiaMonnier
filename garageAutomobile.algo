@@ -4,25 +4,17 @@ ENTREE : Les paramètres d'une voiture et son garage.
 SORTIE : Le garage d'automobile.
 
 CONST 
-	MAXGARAGE = 6
-	MAXVOITURE = 2
-	AUJOURDHUI = 2017
+	MAXVOITURE <- 15 : ENTIER
+	MAXGARAGE <- 2 : ENTIER
+	ANNEEACTUEL <- 2017 : ENTIER
+	MOISACTUEL <- 3 : ENTIER
+	JOURACTUEL <- 9 : ENTIER
 
 TYPE
 	calendrier = ENREGISTREMENT
 		Jour : ENTIER
 		Mois : ENTIER
 		Annee : ENTIER
-end;
-
-TYPE
-	garage = ENREGISTREMENT
-		nom : CHAINE
-		adresse : CHAINE
-		CP : ENTIER
-		ville : CHAINE
-		telephone : ENTIER
-		email : CHAINE
 FINENREGISTREMENT
 
 TYPE
@@ -36,15 +28,28 @@ TYPE
 		options : CHAINE
 		anneeModele : calendrier
 		prixModele : ENTIER
-		coteArgus : ENTIER
 		dateMiseCirculation : calendrier
-		age : ENTIER
-		plaqueImmatriculation : CHAINE
+FINENREGISTREMENT
+
+TYPE
+	garage = ENREGISTREMENT
+		nom : CHAINE
+		adresse : CHAINE
+		CP : ENTIER
+		ville : CHAINE
+		telephone : ENTIER
+		email : CHAINE
+		tableauVoiture : tableau[1..MAXVOITURE] de voiture
 FINENREGISTREMENT
 
 TYPE 
-	tableauVoiture = tableau[1..MAXVOITURE] de voiture
 	tableauGarage = tableau[1..MAXGARAGE] de garage
+
+PROCEDURE effaceEcran()
+DEBUT
+	ECRIRE('Programme : Garage Automobile.')
+	ECRIRE()
+FINPROCEDURE
 
 FONCTION verifDate(Annee : ENTIER, Mois : ENTIER, Jour : ENTIER ):BOOLEEN
 VAR
@@ -57,122 +62,327 @@ DEBUT
 	verifDate <- resultat
 FINFONCTION
 
-PROCEDURE calculAge(tabV : tableauVoiture)
+FONCTION generationImmatriculation():CHAINE
+VAR
+	immatriculation, chiffre : CHAINE
+	i, x : ENTIER
+DEBUT
+	immatriculation <- ''
+	POUR i DE 1 A 5 FAIRE
+		x <- random(26) + 65
+		immatriculation <- immatriculation + chr(ord(x))
+		SI (i = 3) OU (i = 5) ALORS immatriculation <- immatriculation + '-'
+	FINPOUR
+	POUR i DE 1 A 2 FAIRE
+		str(random(10), chiffre)
+		immatriculation <- immatriculation + chiffre
+	FINPOUR
+	generationImmatriculation := immatriculation
+FINFONCTION
+
+PROCEDURE affichageMoyenneGarage(tG : tableauGarage)
+VAR
+	i, j, moyenne, moyenneGenerale : ENTIER
+DEBUT
+	moyenneGenerale <- 0
+	POUR i DE 1 A MAXGARAGE FAIRE
+		moyenne <- 0
+		POUR j DE 1 A tG[i].nombreVoitures FAIRE
+			moyenne <- moyenne + tG[i].tableauVoiture[j].prixModele
+		FINPOUR
+		moyenne <- moyenne DIV tG[i].nombreVoitures
+		moyenneGenerale <- moyenneGenerale + moyenne
+		ECRIRE('Voici la moyenne des valeurs des véhicules pour le garage ' & i & ' : ' & moyenne)
+	FINPOUR
+	moyenneGenerale <- moyenneGenerale DIV MAXGARAGE
+	ECRIRE('Voici la moyenne des valeurs des véhicules de tous les garages : ' & moyenneGenerale)
+FINPROCEDURE
+
+PROCEDURE affichageVoiture(v : voiture)
 VAR
 	age : ENTIER
-	n : ENTIER
+	argus : REEL
 DEBUT
-	POUR n DE 1 A MAXVOITURE FAIRE
-		age <- AUJOURDHUI - tabV[n].anneeModele.Annee
-	FINPOUR
+	age <- ANNEEACTUEL - v.anneeModele.Annee
+	argus <- v.prixModele
+	ECRIRE('Marque : ' & v.marque)
+	ECRIRE('Modèle : ' & v.modele)
+	ECRIRE('Energie : ' & v.energie)
+	ECRIRE('Puissance Fiscale : ' & v.puissanceFiscale)
+	ECRIRE('Puissance DYN : ' & v.puissanceDYN)
+	ECRIRE('Couleur : ' & v.couleur)
+	ECRIRE('Options : ' & v.options)
+	ECRIRE('Année du modèle : ' & v.anneeModele.Annee)
+	ECRIRE('Prix du modèle : ' & v.prixModele & ' €')
+	SI age < 4 ALORS
+		SI age > 0 ALORS argus <- argus * 0.75
+		SI age > 1 ALORS argus <- argus * 0.9
+		SI age > 2 ALORS argus <- argus * 0.9
+	SINON argus <- 0
+	FINSI
+	ECRIRE('Cote Argus : ' & trunc(argus) & '€')
+	ECRIRE('Date de mise en circulation : ' & v.dateMiseCirculation.Annee & '/' & v.dateMiseCirculation.Mois & '/' & v.dateMiseCirculation.Jour)
+	ECRIRE('Age : ' & age & ' ans')
+	ECRIRE('Plaque d''immatriculation : ' & generationImmatriculation())
 FINPROCEDURE
 
-PROCEDURE Immatriculation(tabV : tableauVoiture)
+PROCEDURE affichageVoitureChere(tG : tableauGarage)
 VAR
-	n : ENTIER
+	i, j, prixVoiture : ENTIER
+	v : voiture
 DEBUT
-	POUR n DE 1 A 5 FAIRE
-		Randomize
-		tabV[n] <- random(9)+1
+	POUR i DE 1 A MAXGARAGE FAIRE
+		POUR j DE 1 A tG[i].nombreVoitures FAIRE
+			SI tG[i].tableauVoiture[j].prixModele > prixVoiture ALORS
+				prixVoiture <- tG[i].tableauVoiture[j].prixModele
+				v <- tG[i].tableauVoiture[j]
+			FINSI
+		FINPOUR
 	FINPOUR
+	ECRIRE('La voiture la plus chère est : ')
+	affichageVoiture(v)
 FINPROCEDURE
 
-PROCEDURE renseignementVoiture(var tabV : tableauVoiture)
+PROCEDURE affichageVoitureAncienne(tG : tableauGarage)
 VAR
-	n : ENTIER
+	i, j : ENTIER
+	dateAncienne : calendrier
+	v : voiture
 DEBUT
-	POUR n DE 1 A MAXVOITURE FAIRE
-		ECRIRE('Entrez la marque de la voiture :')
-		LIRE(tabV[n].marque)
-		ECRIRE('Entrez le modèle de la voiture :')
-		LIRE(tabV[n].modele)
-		ECRIRE('Entrez l'energie utilisé par la voiture :')
-		LIRE(tabV[n].energie)
-		ECRIRE('Indiquez la puissance fiscale de la voiture :')
-		LIRE(tabV[n].puissanceFiscale)
-		ECRIRE('Indiquez la puissance DYN de la voiture :')
-		LIRE(tabV[n].puissanceDYN)
-		ECRIRE('Indiquez la couleur de la voiture :')
-		LIRE(tabV[n].couleur)
-		ECRIRE('Entrez les options de la voiture, séparé par un '#' :')
-		LIRE(tabV[n].options)
-		ECRIRE('Indiquez l'année de modèle de la voiture :')
-		LIRE(tabV[n].anneeModele.Annee)
-		REPETER
-			ECRIRE('Entrez la date de mise en circulation de la voiture (Annee/Mois/Jour) :');
-			LIRE(tab[i].dateMiseCirculation.Annee);
-			LIRE(tab[i].dateMiseCirculation.Mois);
-			LIRE(tab[i].dateMiseCirculation.Jour);
-		JUSQU'A verifDate(tab[i].Date_naiss.Annee, tab[i].dateMiseCirculation.Mois, tab[i].dateMiseCirculation.Jour) = VRAI
+	dateAncienne.Annee <- ANNEEACTUEL
+	dateAncienne.Mois <- MOISACTUEL
+	dateAncienne.Jour <- JOURACTUEL
+	POUR i DE 1 A MAXGARAGE FAIRE
+		POUR j DE 1 A tG[i].nombreVoitures FAIRE
+			SI tG[i].tableauVoiture[j].dateMiseCirculation.Annee < dateAncienne.Annee ALORS
+				dateAncienne.Annee <- tG[i].tableauVoiture[j].dateMiseCirculation.Annee
+				dateAncienne.Mois <- tG[i].tableauVoiture[j].dateMiseCirculation.Mois
+				dateAncienne.Jour <- tG[i].tableauVoiture[j].dateMiseCirculation.Jour
+				v <- tG[i].tableauVoiture[j]
+			SINON SI tG[i].tableauVoiture[j].dateMiseCirculation.Annee = dateAncienne.Annee ALORS
+				SI tG[i].tableauVoiture[j].dateMiseCirculation.Mois < dateAncienne.Mois ALORS
+					dateAncienne.Mois <- tG[i].tableauVoiture[j].dateMiseCirculation.Mois
+					dateAncienne.Jour <- tG[i].tableauVoiture[j].dateMiseCirculation.Jour
+					v <- tG[i].tableauVoiture[j]
+				SINON SI tG[i].tableauVoiture[j].dateMiseCirculation.Mois = dateAncienne.Mois ALORS
+					SI tG[i].tableauVoiture[j].dateMiseCirculation.Jour < dateAncienne.Jour ALORS
+						dateAncienne.Jour <- tG[i].tableauVoiture[j].dateMiseCirculation.Jour
+						v <- tG[i].tableauVoiture[j]
+					FINSI
+				FINSI
+			FINSI
+		FINPOUR
 	FINPOUR
+	ECRIRE('La voiture la plus ancienne est : ')
+	affichageVoiture(v)
 FINPROCEDURE
 
-PROCEDURE renseignementGarage(var tabG : tableauGarage)
-VAR
-	n : ENTIER
+PROCEDURE affichageGaragePlusDeVoiture(tG : tableauGarage)
 DEBUT
+	SI tG[1].nombreVoitures > tG[2].nombreVoitures ALORS
+		ECRIRE('Le garage 1 possède le plus de voiture.')
+	SINON
+		ECRIRE('Le garage 2 possède le plus de voiture.')
+	FINSI
+FINPROCEDURE
+
+PROCEDURE affichageGarage(tG : tableauGarage)
+VAR
+	choixG : ENTIER
+	i : ENTIER
+DEBUT
+	ECRIRE('Quel garage souhaitez-vous afficher ?')
+	ECRIRE('1 : Garage 1')
+	ECRIRE('2 : Garage 2')
+	LIRE(choixG)
+	ECRIRE()
+	ECRIRE('Nom du garage : ' & tG[choixG].nom)
+	ECRIRE('Adresse : ' & tG[choixG].adresse)
+	ECRIRE('Code postal : ' & tG[choixG].CP)
+	ECRIRE('La ville : ' & tG[choixG].ville)
+	ECRIRE('Le numéro de téléphone : ' & tG[choixG].telephone)
+	ECRIRE('L'email : ' & tG[choixG].email)
+	POUR i DE 1 A (tG[choixG].nombreVoitures) FAIRE affichageVoiture(tG[choixG].tableauVoiture[i])
+FINPROCEDURE
+
+FONCTION verifNbVoiture(nombreVoitures : ENTIER):BOOLEEN
+VAR
+	resultat : BOOLEEN
+DEBUT
+	resultat <- VRAI
+	SI nombreVoitures >= MAXVOITURE ALORS
+		resultat <- FAUX
+	verifNbVoiture <- resultat
+FINFONCTION
+
+PROCEDURE ajoutVoitureDansGarage(var tG : tableauGarage; v : voiture)
+VAR
+	choixG : ENTIER
+	verif : BOOLEEN
+DEBUT
+	REPETER
+		ECRIRE
+		ECRIRE('Dans quel garage souhaitez-vous mettre votre voiture ?')
+		ECRIRE('1 : Garage 1')
+		ECRIRE('2 : Garage 2')
+		ECRIRE('0 : Annuler l''inscription')
+		LIRE(choixG)
+		SI choixG > 0 ALORS
+			verif <- verifNbVoiture(tG[choixG].nombreVoitures)
+			SI verif = VRAI ALORS
+				tG[choixG].nombreVoitures <- tG[choixG].nombreVoitures + 1
+				tG[choixG].tableauVoiture[tG[choixG].nombreVoitures] <- v
+				ECRIRE('Votre voiture a bien été inscrite dans le garage ' & choixG & '.')
+			SINON ECRIRE('Il n'y a plus de place dans ce garage.')
+			FINSI
+		FINSI
+	JUSQU'A (choixG = 0) OU (verif = VRAI)
+FINPROCEDURE
+
+PROCEDURE renseignementVoiture(var tG : tableauGarage)
+VAR
+	v : voiture;
+DEBUT
+	ECRIRE('Entrez la marque de la voiture :')
+	LIRE(v.marque)
+	ECRIRE('Entrez le modèle de la voiture :')
+	LIRE(v.modele)
+	ECRIRE('Entrez l'energie utilisé par la voiture :')
+	LIRE(v.energie)
+	ECRIRE('Indiquez la puissance fiscale de la voiture :')
+	LIRE(v.puissanceFiscale)
+	ECRIRE('Indiquez la puissance DYN de la voiture :')
+	LIRE(v.puissanceDYN)
+	ECRIRE('Indiquez la couleur de la voiture :')
+	LIRE(v.couleur)
+	ECRIRE('Entrez les options de la voiture, séparé par un '#' :')
+	LIRE(v.options)
+	ECRIRE('Indiquez l'année de modèle de la voiture :')
+	LIRE(v.anneeModele.Annee)
+	ECRIRE('Indiquez le prix du modèle (valeur à neuf) :')
+	LIRE(v.prixModele)
+	REPETER
+		ECRIRE('Entrez la date de mise en circulation de la voiture (Annee/Mois/Jour) :')
+		LIRE(v.dateMiseCirculation.Annee)
+		LIRE(v.dateMiseCirculation.Mois)
+		LIRE(v.dateMiseCirculation.Jour)
+	JUSQU'A verifDate(tab[n].Date_naiss.Annee, tab[n].dateMiseCirculation.Mois, tab[n].dateMiseCirculation.Jour) = VRAI
+	ajoutVoitureDansGarage(tG, v)
+FINPROCEDURE
+
+FONCTION verifMail(email : string):BOOLEEN
+VAR
+	compteur : ENTIER
+	resultat : BOOLEEN
+	arobase : BOOLEEN
+DEBUT
+	resultat <- FAUX
+	arobase <- FAUX
+	POUR compteur DE 1 A LONGUEUR(email) FAIRE
+		SI email[compteur] = '@' ALORS arobase <- VRAI
+		SI (email[compteur] = '.') ET (arobase = TRUE) ALORS resultat <- VRAI
+	FINPOUR
+	verifMail := resultat
+FINFONCTION
+
+FONCTION verifTelephone(tel : string):BOOLEEN
+VAR
+	compteur : ENTIER
+	resultat : BOOLEEN
+DEBUT
+	resultat <- FAUX
+	SI LONGUEUR(tel) = 10 ALORS
+		POUR compteur DE 1 A LONGUEUR(tel) FAIRE
+			SI (tel[compteur] = '0') OU (tel[compteur] = '1') OU (tel[compteur] = '2') OU (tel[compteur] = '3') OU (tel[compteur] = '4') OU (tel[compteur] = '5') OU
+			(tel[compteur] = '6') OU (tel[compteur] = '7') OU (tel[compteur] = '8') OU (tel[compteur] = '9') ALORS resultat <- VRAI
+		FINPOUR
+	FINSI
+	verifTelephone <- resultat
+FINFONCTION
+
+PROCEDURE renseignementGarage(var tG : tableauGarage)
+VAR
+	g : garage
+	choixG : ENTIER
+DEBUT
+	ECRIRE
+	ECRIRE('Quel garage souhaitez-vous renseigner ?')
+	ECRIRE('1 : Garage 1')
+	ECRIRE('2 : Garage 2')
+	LIRE(choixG)
 	ECRIRE('Entrez votre nom :')
-	LIRE(tabG[n].nom)
+	LIRE(tabG[choixG].nom)
 	ECRIRE('Indiquer votre adresse :')
-	LIRE(tabG[n].adresse)
+	LIRE(tabG[choixG].adresse)
 	ECRIRE('Entrez votre code postal :')
-	LIRE(tabG[n].CP)
+	LIRE(tabG[choixG].CP)
 	ECRIRE('Indiquer votre ville :')
-	LIRE(tabG[n].ville)
-	ECRIRE('Entrez votre numero de téléphone :')
-	LIRE(tabG[n].telephone)
-	ECRIRE('Entrez votre email :')
-	LIRE(tabG[n].email)
+	LIRE(tabG[choixG].ville)
+	REPETER
+		ECRIRE('Entrez votre numero de téléphone :')
+		LIRE(tabG[choixG].telephone)
+		verifTelephone(tG[choixG].telephone)
+	JUSQU'A verifTelephone(tG[choixG].telephone) = VRAI
+	REPETER
+		ECRIRE('Entrez votre email :')
+		LIRE(tabG[choixG].email)
+		verifMail(tG[choixG].email);
+	JUSQU'A verifMail(tG[choixG].email) = VRAI
 FINPROCEDURE
 
-PROCEDURE affichageVoiture(tabV : tableauVoiture)
-VAR
-	n : ENTIER
+FONCTION menuAffichage(tG : tableauGarage):ENTIER
+VAR 
+	choixA : integer;
 DEBUT
-	POUR n DE 1 A MAXVOITURE FAIRE
-		ECRIRE('La marque : '& tabV[n].marque)
-		ECRIRE('Le modèle : '& tabV[n].modele)
-		ECRIRE('L'énergie : '& tabV[n].energie)
-		ECRIRE('La puissance fiscale : '& tabV[n].puissanceFiscale)
-		ECRIRE('La puissance DYN : '& tabV[n].puissanceDYN)
-		ECRIRE('La couleur : '& tabV[n].couleur)
-		ECRIRE('Les options : '& tabV[n].options)
-		ECRIRE('L'année du modèle : '& tabV[n].anneeModele.Annee)
-		ECRIRE('Le prix du modèle : '& tabV[n].prixModele)
-		ECRIRE('La cote Argus : '& tabV[n].coteArgus)
-		ECRIRE('La date de la mise en circulation : '& tabV[n].dateMiseCirculation.Annee & '/' & tabV[n].dateMiseCirculation.Mois & '/' & tabV[n].dateMiseCirculation.Jour)
-		ECRIRE('L'age : '& calculAge(tabV))
-		ECRIRE('La plaque d'immatriculation :' & Immatriculation(tabV[n]) & '-' & 'AB') //Je n'ai pas le temps de faire un random pour les caractères.
-	FINPOUR
+	ECRIRE()
+	ECRIRE('Veuillez faire votre choix :')
+	ECRIRE('1 : Afficher un garage et ses voitures')
+	ECRIRE('2 : Afficher le garage qui a le plus de voiture')
+	ECRIRE('3 : Afficher le véhicule le plus ancien')
+	ECRIRE('4 : Afficher la moyenne des valeurs des véhicules')
+	ECRIRE('5 : Afficher le véhicule le plus cher en valeur à neuf')
+	ECRIRE('6 : Afficher le véhicule le plus cher en cote argus à 3 ans')
+	LIRE(choixA)
+	CAS choixA PARMI
+		1 : affichageGarage(tG)
+		2 : affichageGaragePlusDeVoiture(tG)
+		3 : affichageVoitureAncienne(tG)
+		4 : affichageMoyenneGarage(tG)
+		5 : affichageVoitureChere(tG)
+	FINCASPARMI
+	effaceEcran()
+	menuAffichage <- choixA
 FINPROCEDURE
 
-PROCEDURE affichageGarage(tabG : tableauGarage)
+FONCTION menuPrincipal(var tG : tableauGarage):ENTIER
 VAR
-	n: ENTIER
+	choix, prixVoiture : ENTIER
 DEBUT
-	POUR n DE 1 A MAXGARAGE FAIRE
-		ECRIRE('Votre nom : ' & tabG[n].nom)
-		ECRIRE('Votre adresse : ' & tabG[n].adresse)
-		ECRIRE('Votre code postal : ' & tabG[n].CP)
-		ECRIRE('Votre ville : ' & tabG[n].ville)
-		ECRIRE('Votre numéro de téléphone : ' & tabG[n].telephone)
-		ECRIRE('Votre email : ' & tabG[n].email)
-	FINPOUR
-FINPROCEDURE
+	prixVoiture <- 0
+	ECRIRE('Veuillez faire votre choix :')
+	ECRIRE('1 : Renseigner un garage')
+	ECRIRE('2 : Renseigner une voiture')
+	ECRIRE('3 : Afficher les garages et les voitures')
+	ECRIRE('0 : Sortir du programme')
+	LIRE(choix)
+	CAS choix PARMI
+		1 : renseignementGarage(tG)
+		2 : renseignementVoiture(tG)
+		3 : menuAffichage(tG)
+	FINCASPARMI
+	effaceEcran()
+	menuPrincipal <- choix
+FINFONCTION
 
 -- Programme Principal --
 
 VAR
-	tabV : tableauVoiture
+	tG : tableauGarage
+	i : ENTIER
 DEBUT
-	ECRIRE('Renseigner votre voiture.')
-	renseignementVoiture(tabV)
-	ECRIRE('Enregistrez votre voiture dans un garage.')
-	renseignementGarage(tabG)
-	GOTOXY(1, 1)
-	affichageVoiture(tabV)
-	affichageGarage(tabG)
+	Randomize
+	effaceEcran()
+	POUR i DE 1 A MAXGARAGE FAIRE tG[i].nombreVoitures <- 0
+	TANT QUE menuPrincipal(tG) <> 0 FAIRE
 FIN
 
-Je n'ai pas eu le temps de faire le calcul par rapport à la cote Argus, ni de faire une fonction afin de valider l'email, ni de faire les affichages
-par rapport à la moyenne, le véhicule le plus cher...
