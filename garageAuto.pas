@@ -335,12 +335,15 @@ begin
 	writeln('2 : Garage 2');
 	readln(choixG);
 	writeln;
-	writeln('Entrez le nom du garage :');
-	readln(tG[choixG].nom);
+	REPEAT
+		writeln('Entrez le nom du garage :');
+		readln(tG[choixG].nom);
+	UNTIL tG[2].nom <> tG[1].nom;
 	writeln('Entrez l''adresse du garage :');
 	readln(tG[choixG].adresse);
 	writeln('Entrez le code postal du garage :');
 	readln(tG[choixG].CP);
+	tG[choixG].CP := copy(tG[choixG].CP,1,5);
 	writeln('Indiquez la ville du garage :');
 	readln(tG[choixG].ville);
 	REPEAT

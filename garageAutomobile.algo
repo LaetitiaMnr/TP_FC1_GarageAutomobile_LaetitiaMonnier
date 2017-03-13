@@ -310,12 +310,15 @@ DEBUT
 	ECRIRE('1 : Garage 1')
 	ECRIRE('2 : Garage 2')
 	LIRE(choixG)
-	ECRIRE('Entrez votre nom :')
-	LIRE(tabG[choixG].nom)
+	REPETER
+		ECRIRE('Entrez votre nom :')
+		LIRE(tabG[choixG].nom)
+	JUSQU'A tG[2].nom <> tG[1].nom
 	ECRIRE('Indiquer votre adresse :')
 	LIRE(tabG[choixG].adresse)
 	ECRIRE('Entrez votre code postal :')
 	LIRE(tabG[choixG].CP)
+	tG[choixG].CP <- EXTRACTION(tG[choixG].CP,1,5)
 	ECRIRE('Indiquer votre ville :')
 	LIRE(tabG[choixG].ville)
 	REPETER
