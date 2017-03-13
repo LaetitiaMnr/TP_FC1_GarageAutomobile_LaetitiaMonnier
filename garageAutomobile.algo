@@ -51,15 +51,30 @@ DEBUT
 	ECRIRE()
 FINPROCEDURE
 
-FONCTION verifDate(Annee : ENTIER, Mois : ENTIER, Jour : ENTIER ):BOOLEEN
+FONCTION Bissextile(Annee : ENTIER):BOOLEEN
 VAR
 	resultat : BOOLEEN
 DEBUT
 	resultat <- FAUX
-	SI (Annee > 1900) ET ((Mois > 1) ET (Mois < 12)) ET ((Jour > 1) ET (Jour < 31)) ALORS
+	SI (Annee DIV 4 = 0) ET (Annee DIV 100 <> 0) OU (ANNEE DIV 100 = 400) ALORS
 		resultat <- VRAI
-	FINSI
-	verifDate <- resultat
+	Bissextile <- resultat
+FIN
+
+FONCTION verifDate(Annee : ENTIER, Mois : ENTIER, Jour : ENTIER, Bissextile : ENTIER):BOOLEEN
+VAR
+	resultat : BOOLEEN
+DEBUT
+	resultat <- FAUX
+	CAS Mois PARMI
+		1, 3, 5, 7, 8, 10, 12 : verifDate <- Jour > 0 ET Jour <= 31
+		4, 6, 9, 11 : verifDate <- Jour > 0 ET Jour <= 30
+		2 : DEBUT
+				SI Annee = Bissextile ALORS
+					verifDate <- Jour > 0 ET Jour <= 29
+				SINON
+					verifDate <- Jour > 0 ET Jour <= 28
+				FINSI
 FINFONCTION
 
 FONCTION generationImmatriculation():CHAINE
